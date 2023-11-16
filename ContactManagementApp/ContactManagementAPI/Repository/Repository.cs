@@ -1,5 +1,6 @@
 ﻿using ContactManagementAPI.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ContactManagementAPI.Repository;
 
@@ -27,13 +28,18 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.ToListAsync();
     }
 
-    public async Task<T> GetAsync(bool tracked = true)
+    public async Task<T> GetAsync(Expression<Func<T, bool>> filter = null, bool tracked = true)
     {
         IQueryable<T> query = dbSet;
 
         if (!tracked)
         {
             query = query.AsNoTracking();
+        }
+
+        if (filter is not null)
+        {
+            query = query.Where(filter);
         }
 
         return await query.FirstOrDefaultAsync();

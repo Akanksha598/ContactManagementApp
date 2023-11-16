@@ -1,9 +1,8 @@
-﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ContactManagementAPI.Controllers.v2;
 
-[Route("api/v{version:apiVersion}/villaApi")]
+[Route("api/v{version:apiVersion}/contactApi")]
 [ApiVersion("2.0")]
 [ApiController]
 public class ContactApiController : ControllerBase

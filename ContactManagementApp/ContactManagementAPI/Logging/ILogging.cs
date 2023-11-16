@@ -1,7 +1,6 @@
-﻿namespace ContactAPI.Logging
+﻿namespace ContactManagementAPI.Logging;
+
+public interface ILogging
 {
-    public interface ILogging
-    {
-        void Log(string message, string type);
-    }
+    void Log(string message, string type);
 }

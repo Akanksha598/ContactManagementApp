@@ -1,303 +1,224 @@
-﻿//using Asp.Versioning;
-//using AutoMapper;
-//using ContactAPI.Logging;
-//using ContactAPI.Models;
-//using ContactAPI.Repository;
-//using ContactManagementAPI.Models.Dtos;
-//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
-//using System.Net;
-//using System.Text.Json;
+﻿using AutoMapper;
+using ContactManagementAPI.Models;
+using ContactManagementAPI.Models.Dtos;
+using ContactManagementAPI.Repository;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
-//namespace ContactManagementAPI.Controllers.v1;
+namespace ContactManagementAPI.Controllers.v1;
 
-//[Route("api/v{version:apiVersion}/contactApi")]
-//[ApiVersion("1.0")]
-//[ApiController]
-//public class ContactApiController : ControllerBase
-//{
-//    public readonly ILogging _logger;
+[Route("api/v{version:apiVersion}/contactApi")]
+[ApiVersion("1.0")]
+[ApiController]
+public class ContactApiController : ControllerBase
+{
+    private readonly ILogger<ContactApiController> _logger;
 
-//    public readonly IContactRepository _dbContact;
+    public readonly IContactRepository _dbContact;
 
-//    public readonly IMapper _mapper;
+    public readonly IMapper _mapper;
 
-//    protected APIResponse _response;
-//    public ContactApiController(ILogging logging, IContactRepository dbVilla, IMapper mapper)
-//    {
-//        _logger = logging;
-//        _dbContact = dbVilla;
-//        _mapper = mapper;
-//        _response = new();
-//    }
+    protected APIResponse _response;
+    public ContactApiController(ILogger<ContactApiController> logging, IContactRepository dbcontact, IMapper mapper)
+    {
+        _logger = logging;
+        _dbContact = dbcontact;
+        _mapper = mapper;
+        _response = new();
+    }
 
-//    [HttpGet]
-//    [ResponseCache(CacheProfileName = "Default30")]
-//    [MapToApiVersion("1.0")]
-//    [Authorize]
-//    [ProducesResponseType(StatusCodes.Status200OK)]
-//    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-//    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-//    public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int? occupancy,
-//        [FromQuery] string? search, int pageSize = 0, int pageNumber = 1)
-//    {
-//        _logger.Log("Getting all villas", "");
+    [HttpGet]
+    [MapToApiVersion("1.0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<APIResponse>> GetContacts()
+    {
+        _logger.LogInformation("Getting all contacts", "");
 
-//        try
-//        {
-//            IEnumerable<Contact> villaList;
+        try
+        {
+            IEnumerable<Contact> contactList;
 
-//            if (occupancy > 0)
-//            {
-//                villaList = await _dbContact.GetAllAsync(u => u.Occupancy == occupancy, pageSize: pageSize, pageNumber: pageNumber);
-//            }
-//            else
-//            {
-//                villaList = await _dbContact.GetAllAsync(pageSize: pageSize, pageNumber: pageNumber);
-//            }
-//            if (!string.IsNullOrEmpty(search))
-//            {
-//                villaList = villaList.Where(u => u.Name.ToLower().Contains(search.ToLower()));
-//            }
+            contactList = await _dbContact.GetAllAsync();
 
-//            Pagination pagination = new() { PageNumber = pageNumber, PageSize = pageSize };
-//            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(pagination));
-//            _response.Result = _mapper.Map<List<ContactDTO>>(villaList);
-//            _response.StatusCode = HttpStatusCode.OK;
+            _response.Result = _mapper.Map<List<ContactDTO>>(contactList);
 
-//            return Ok(_response);
-//        }
-//        catch (Exception ex)
-//        {
+            _response.StatusCode = HttpStatusCode.OK;
 
-//            _response.IsSuccess = false;
-//            _response.ErrorMessages = new List<string>
-//            {
-//                ex.ToString()
-//            };
+            return Ok(_response);
+        }
+        catch (Exception ex)
+        {
 
-//            return _response;
-//        }
-//    }
+            _response.IsSuccess = false;
+            _response.ErrorMessages = new List<string>
+            {
+                ex.ToString()
+            };
 
-//    [HttpGet("{id:int}", Name = "GetVilla")]
-//    //[ResponseCache(Location = ResponseCacheLocation.None, NoStore =true)]
-//    [Authorize]
-//    [ProducesResponseType(200, Type = typeof(ContactDTO))]
-//    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-//    [ProducesResponseType(StatusCodes.Status404NotFound)]
-//    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-//    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-//    public async Task<ActionResult<APIResponse>> GetVilla(int id)
-//    {
-//        try
-//        {
-//            if (id == 0)
-//            {
-//                _logger.Log("Get Vila Error with Id" + id, "error");
-//                _response.StatusCode = HttpStatusCode.BadRequest;
-//                return BadRequest(_response);
-//            }
+            return _response;
+        }
+    }
 
-//            var vila = await _dbContact.GetAsync(villa => villa.Id == id);
-//            if (vila == null)
-//            {
-//                _response.StatusCode = HttpStatusCode.NotFound;
-//                return NotFound(_response);
-//            }
-//            _response.Result = _mapper.Map<ContactDTO>(vila);
-//            _response.StatusCode = HttpStatusCode.OK;
+    [HttpGet("{id:int}", Name = "GetContact")]
+    [ProducesResponseType(200, Type = typeof(ContactDTO))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<APIResponse>> GetContact(int id)
+    {
+        try
+        {
+            if (id == 0)
+            {
+                _logger.LogInformation("Get Contact Error with Id" + id, "error");
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
+            }
 
-//            return Ok(_response);
-//        }
+            var contact = await _dbContact.GetAsync(contact => contact.ID == id);
 
-//        catch (Exception ex)
-//        {
+            if (contact == null)
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                return NotFound(_response);
+            }
+            _response.Result = _mapper.Map<ContactDTO>(contact);
+            _response.StatusCode = HttpStatusCode.OK;
 
-//            _response.IsSuccess = false;
-//            _response.ErrorMessages = new List<string>
-//            {
-//                ex.ToString()
-//            };
+            return Ok(_response);
+        }
 
-//            return _response;
-//        }
-//    }
+        catch (Exception ex)
+        {
 
-//    [HttpPost]
-//    [Authorize(Roles = Constants.Admin)]
-//    [ProducesResponseType(StatusCodes.Status201Created)]
-//    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-//    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-//    public async Task<ActionResult<APIResponse>> CreateVilla([FromBody] ContactCreateDTO createvillaDTO)
-//    {
-//        try
-//        {
-//            if (createvillaDTO == null)
-//            {
-//                _response.StatusCode = HttpStatusCode.BadRequest;
-//                return BadRequest(_response);
-//            }
+            _response.IsSuccess = false;
+            _response.ErrorMessages = new List<string>
+            {
+                ex.ToString()
+            };
 
-//            if (await _dbContact.GetAsync(x => x.Name.ToLower() == createvillaDTO.Name.ToLower()) != null)
-//            {
-//                ModelState.AddModelError("ErrorMessages", "Name already Exists");
-//                return BadRequest(ModelState);
-//            }
+            return _response;
+        }
+    }
 
-//            Contact villa = _mapper.Map<Contact>(createvillaDTO);
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<APIResponse>> CreateContact([FromBody] ContactCreateDTO contactDTO)
+    {
+        try
+        {
+            if (contactDTO == null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
+            }
 
-//            await _dbContact.CreateAsync(villa);
+            if (await _dbContact.GetAsync(x => x.Name.ToLower() == contactDTO.Name.ToLower()) != null)
+            {
+                ModelState.AddModelError("ErrorMessages", "Name already Exists");
+                return BadRequest(ModelState);
+            }
 
-//            _response.Result = _mapper.Map<ContactDTO>(villa);
-//            _response.StatusCode = HttpStatusCode.Created;
+            Contact contact = _mapper.Map<Contact>(contactDTO);
 
-//            return CreatedAtRoute("GetVilla", new { id = villa.Id }, _response);
-//        }
-//        catch (Exception ex)
-//        {
+            await _dbContact.CreateAsync(contact);
 
-//            _response.IsSuccess = false;
-//            _response.ErrorMessages = new List<string>
-//            {
-//                ex.ToString()
-//            };
+            _response.Result = _mapper.Map<ContactDTO>(contact);
+            _response.StatusCode = HttpStatusCode.Created;
 
-//            return _response;
-//        }
-//    }
+            return CreatedAtRoute("GetContact", new { id = contact.ID }, _response);
+        }
+        catch (Exception ex)
+        {
 
-//    [HttpDelete("{id:int}", Name = "DeleteVilla")]
-//    [Authorize(Roles = Constants.Admin)]
-//    [ProducesResponseType(StatusCodes.Status204NoContent)]
-//    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-//    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-//    [ProducesResponseType(StatusCodes.Status404NotFound)]
-//    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-//    public async Task<ActionResult<APIResponse>> DeleteVilla(int id)
-//    {
-//        try
-//        {
-//            if (id == 0)
-//            {
-//                _response.StatusCode = HttpStatusCode.BadRequest;
-//                return BadRequest(_response);
-//            }
+            _response.IsSuccess = false;
+            _response.ErrorMessages = new List<string>
+            {
+                ex.ToString()
+            };
 
-//            var vila = await _dbContact.GetAsync(villa => villa.Id == id);
+            return _response;
+        }
+    }
 
-//            if (vila == null)
-//            {
-//                _response.StatusCode = HttpStatusCode.NotFound;
-//                return NotFound(_response);
-//            }
+    [HttpDelete("{id:int}", Name = "DeleteContact")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<APIResponse>> DeleteContact(int id)
+    {
+        try
+        {
+            if (id == 0)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
+            }
 
-//            await _dbContact.RemoveAsync(vila);
+            var contact = await _dbContact.GetAsync(contact => contact.ID == id);
 
-//            _response.IsSuccess = true;
-//            _response.StatusCode = HttpStatusCode.NoContent;
+            if (contact == null)
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                return NotFound(_response);
+            }
 
-//            return Ok(_response);
-//        }
-//        catch (Exception ex)
-//        {
+            await _dbContact.RemoveAsync(contact);
 
-//            _response.IsSuccess = false;
-//            _response.ErrorMessages = new List<string>
-//            {
-//                ex.ToString()
-//            };
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.NoContent;
 
-//            return _response;
-//        }
+            return Ok(_response);
+        }
+        catch (Exception ex)
+        {
 
-//    }
+            _response.IsSuccess = false;
+            _response.ErrorMessages = new List<string>
+            {
+                ex.ToString()
+            };
 
-//    [HttpPut("{id:int}", Name = "UpdateVilla")]
-//    [Authorize(Roles = Constants.Admin)]
-//    [ProducesResponseType(StatusCodes.Status204NoContent)]
-//    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-//    public async Task<ActionResult<APIResponse>> UpdateVilla(int id, [FromBody] ContactUpdateDTO updatevillaDTO)
-//    {
-//        try
-//        {
-//            if (updatevillaDTO == null || id != updatevillaDTO.Id)
-//            {
-//                _response.StatusCode = HttpStatusCode.BadRequest;
-//                return BadRequest(_response);
-//            }
+            return _response;
+        }
 
-//            Contact model = _mapper.Map<Contact>(updatevillaDTO);
+    }
 
-//            await _dbContact.UpdateAsync(model);
+    [HttpPut("{id:int}", Name = "UpdateContact")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<APIResponse>> UpdateContact(int id, [FromBody] ContactUpdateDTO updatecontactDTO)
+    {
+        try
+        {
+            if (updatecontactDTO == null || id != updatecontactDTO.ID)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                return BadRequest(_response);
+            }
 
-//            _response.IsSuccess = true;
-//            _response.StatusCode = HttpStatusCode.NoContent;
+            Contact model = _mapper.Map<Contact>(updatecontactDTO);
 
-//            return Ok(_response);
-//        }
-//        catch (Exception ex)
-//        {
+            await _dbContact.UpdateAsync(model);
 
-//            _response.IsSuccess = false;
-//            _response.ErrorMessages = new List<string>
-//            {
-//                ex.ToString()
-//            };
+            _response.IsSuccess = true;
+            _response.StatusCode = HttpStatusCode.NoContent;
 
-//            return _response;
-//        }
-//    }
+            return Ok(_response);
+        }
+        catch (Exception ex)
+        {
 
-//    [HttpPatch("{id:int}", Name = "UpdatePartialVilla")]
-//    [ProducesResponseType(StatusCodes.Status204NoContent)]
-//    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-//    public async Task<ActionResult<APIResponse>> UpdatePartialVilla(int id, JsonPatchDocument<ContactUpdateDTO> patchDTO)
-//    {
-//        try
-//        {
-//            if (patchDTO == null || id == 0)
-//            {
-//                _response.StatusCode = HttpStatusCode.BadRequest;
-//                return BadRequest(_response);
-//            }
+            _response.IsSuccess = false;
+            _response.ErrorMessages = new List<string>
+            {
+                ex.ToString()
+            };
 
-//            var vila = await _dbContact.GetAsync(villa => villa.Id == id, tracked: false);
-
-//            ContactUpdateDTO villaDTO = _mapper.Map<ContactUpdateDTO>(vila);
-
-//            if (vila == null)
-//            {
-//                _response.StatusCode = HttpStatusCode.BadRequest;
-//                return BadRequest(_response);
-//            }
-
-//            patchDTO.ApplyTo(villaDTO, ModelState);
-
-//            Contact model = _mapper.Map<Contact>(villaDTO);
-
-//            await _dbContact.UpdateAsync(model);
-
-//            if (!ModelState.IsValid)
-//            {
-//                return BadRequest(ModelState);
-//            }
-
-//            _response.IsSuccess = true;
-//            _response.StatusCode = HttpStatusCode.NoContent;
-
-//            return Ok(_response);
-//        }
-//        catch (Exception ex)
-//        {
-
-//            _response.IsSuccess = false;
-//            _response.ErrorMessages = new List<string>
-//            {
-//                ex.ToString()
-//            };
-
-//            return _response;
-//        }
-//    }
-//}
+            return _response;
+        }
+    }
+}

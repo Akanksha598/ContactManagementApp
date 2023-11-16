@@ -1,10 +1,12 @@
-﻿namespace ContactManagementAPI.Repository;
+﻿using System.Linq.Expressions;
+
+namespace ContactManagementAPI.Repository;
 
 public interface IRepository<T> where T : class
 {
     Task<List<T>> GetAllAsync();
 
-    Task<T> GetAsync(bool tracked = true);
+    Task<T> GetAsync(Expression<Func<T, bool>> filter = null, bool tracked = true);
 
     Task CreateAsync(T entity);
 
