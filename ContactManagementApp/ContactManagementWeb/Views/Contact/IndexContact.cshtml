@@ -1,0 +1,42 @@
+﻿@model IEnumerable<ContactDTO>
+<br/>
+<div class="container p-4 border">
+    <div class="row pb-2">
+        <div class="col">
+            <h1 class="text-primary">Contact List</h1>
+        </div>
+        <div class="col text-end pt-1">
+            <a class="btn btn-outline-primary" asp-controller="Contact" asp-action="CreateContact"><i class="bi bi-plus-square-fill"></i>Create New Contact</a>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>PhoneNumber</th>
+                <th>Address</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Email</td>
+                    <td>@item.PhoneNumber</td>
+                    <td>@item.Address</td>
+                    <td>
+                        <a class="btn btn-outline-success" asp-controller="Contact" asp-action="UpdateContact" asp-route-ContactId="@item.ID"><i class="bi bi-pencil-square"></i></a>
+                    </td>
+                    <td>
+                        <a class="btn btn-outline-danger" asp-controller="Contact" asp-action="DeleteContact" asp-route-ContactId="@item.ID"><i class="bi bi-trash-fill"></i></a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+    </table>
+</div>
